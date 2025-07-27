@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Issue Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light grey background */
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .gradient-button {
+            background-image: linear-gradient(to right, #4CAF50 0%, #689F38 50%, #4CAF50 100%);
+            background-size: 200% auto;
+            transition: 0.5s;
+        }
+        .gradient-button:hover {
+            background-position: right center;
+        }
+        .gradient-button-red {
+            background-image: linear-gradient(to right, #EF4444 0%, #DC2626 50%, #EF4444 100%);
+            background-size: 200% auto;
+            transition: 0.5s;
+        }
+        .gradient-button-red:hover {
+            background-position: right center;
+        }
+        .gradient-button-blue {
+            background-image: linear-gradient(to right, #3B82F6 0%, #2563EB 50%, #3B82F6 100%);
+            background-size: 200% auto;
+            transition: 0.5s;
+        }
+        .gradient-button-blue:hover {
+            background-position: right center;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in-right {
+            animation: slideInRight 0.5s ease-out;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .popup-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInOut 4s forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold flex items-center">
+                <i class="fas fa-home mr-2"></i> Community Portal
+            </h1>
+            <nav id="main-nav" class="hidden md:flex space-x-4">
+                <button id="nav-dashboard" class="px-3 py-2 rounded-lg hover:bg-blue-700 transition duration-300">Dashboard</button>
+                <button id="nav-report-issue" class="px-3 py-2 rounded-lg hover:bg-blue-700 transition duration-300">Report Issue</button>
+                <button id="nav-profile" class="px-3 py-2 rounded-lg hover:bg-blue-700 transition duration-300 hidden">Profile</button>
+                <button id="nav-manage-admins" class="px-3 py-2 rounded-lg hover:bg-blue-700 transition duration-300 hidden">Manage Admins</button>
+                <button id="nav-analytics" class="px-3 py-2 rounded-lg hover:bg-blue-700 transition duration-300">Analytics</button>
+                <button id="nav-logout" class="px-3 py-2 rounded-lg hover:bg-blue-700 transition duration-300">Logout</button>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-blue-700 mt-2 rounded-md shadow-lg py-2">
+            <button class="block w-full text-left px-4 py-2 text-white hover:bg-blue-800 transition duration-300" onclick="handleNavClick('dashboard')">Dashboard</button>
+            <button class="block w-full text-left px-4 py-2 text-white hover:bg-blue-800 transition duration-300" onclick="handleNavClick('report-issue')">Report Issue</button>
+            <button class="block w-full text-left px-4 py-2 text-white hover:bg-blue-800 transition duration-300 hidden" id="mobile-nav-profile" onclick="handleNavClick('profile')">Profile</button>
+            <button class="block w-full text-left px-4 py-2 text-white hover:bg-blue-800 transition duration-300 hidden" id="mobile-nav-manage-admins" onclick="handleNavClick('manage-admins')">Manage Admins</button>
+            <button class="block w-full text-left px-4 py-2 text-white hover:bg-blue-800 transition duration-300" onclick="handleNavClick('analytics')">Analytics</button>
+            <button class="block w-full text-left px-4 py-2 text-white hover:bg-blue-800 transition duration-300" onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow container mx-auto p-4 md:p-6">
+
+        <!-- Login/Registration Section -->
+        <section id="auth-section" class="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] fade-in">
+            <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+                <h2 class="text-3xl font-bold text-center mb-6 text-blue-600" id="auth-header">Welcome to the Portal</h2>
+
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label for="login-username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                        <input type="text" id="login-username" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your username">
+                    </div>
+                    <div>
+                        <label for="login-password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" id="login-password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your password">
+                    </div>
+                    <button type="submit" id="login-button" class="w-full gradient-button text-white py-3 rounded-md font-semibold text-lg hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300">Login</button>
+                    <p class="text-center text-gray-600 mt-4 text-sm">
+                        Don't have an account? <button type="button" id="show-register-button" class="text-blue-600 hover:underline font-semibold">Register here</button>
+                    </p>
+                </form>
+
+                <!-- Registration Form -->
+                <form id="register-form" class="space-y-4 hidden">
+                    <div>
+                        <label for="register-username" class="block text-sm font-medium text-gray-700 mb-2">Choose Username</label>
+                        <input type="text" id="register-username" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Choose a unique username">
+                    </div>
+                    <div>
+                        <label for="register-password" class="block text-sm font-medium text-gray-700 mb-2">Choose Password</label>
+                        <input type="password" id="register-password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Create a strong password">
+                    </div>
+                    <div>
+                        <label for="register-address" class="block text-sm font-medium text-gray-700 mb-2">Your Address (for residents)</label>
+                        <input type="text" id="register-address" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Apt 101, Building A">
+                    </div>
+                    <div>
+                        <label for="register-role" class="block text-sm font-medium text-gray-700 mb-2">Your Role</label>
+                        <select id="register-role" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="resident">Resident</option>
+                            <option value="admin">Admin</option>
+                            <option value="service">Service Team</option>
+                        </select>
+                    </div>
+                    <button type="submit" id="register-button" class="w-full gradient-button text-white py-3 rounded-md font-semibold text-lg hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300">Register</button>
+                    <p class="text-center text-gray-600 mt-4 text-sm">
+                        Already have an account? <button type="button" id="show-login-button" class="text-blue-600 hover:underline font-semibold">Login here</button>
+                    </p>
+                </form>
+            </div>
+        </section>
+
+        <!-- Resident Dashboard Section -->
+        <section id="resident-dashboard-section" class="hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6 text-blue-600">Resident Dashboard</h2>
+
+            <!-- Report New Issue Card -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
+                    <i class="fas fa-plus-circle mr-2 text-green-500"></i> Report a New Issue
+                </h3>
+                <form id="issue-report-form">
+                    <div class="mb-4">
+                        <label for="issue-title" class="block text-sm font-medium text-gray-700 mb-2">Issue Title</label>
+                        <input type="text" id="issue-title" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Leaky Faucet in Bathroom" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="issue-description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="issue-description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Provide details about the issue..." required></textarea>
+                    </div>
+                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="issue-type" class="block text-sm font-medium text-gray-700 mb-2">Issue Type</label>
+                            <select id="issue-type" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="">Select Type</option>
+                                <option value="Plumbing">Plumbing</option>
+                                <option value="Electrical">Electrical</option>
+                                <option value="Structural">Structural</option>
+                                <option value="Common Area">Common Area</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="issue-location" class="block text-sm font-medium text-gray-700 mb-2">Location Data (e.g., Apt #, Block, GPS)</label>
+                            <input type="text" id="issue-location" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Building A, Apt 101" required>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label for="issue-photo" class="block text-sm font-medium text-gray-700 mb-2">Upload Photo (Optional)</label>
+                        <input type="file" id="issue-photo" accept="image/*" class="w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                        <div id="photo-preview" class="mt-2 hidden">
+                            <img src="" alt="Photo Preview" class="max-w-xs h-auto rounded-md shadow-sm">
+                            <p class="text-sm text-gray-500 mt-1">Image preview</p>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full gradient-button text-white py-3 rounded-md font-semibold text-lg hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300">
+                        <i class="fas fa-paper-plane mr-2"></i> Submit Issue
+                    </button>
+                </form>
+            </div>
+
+            <!-- My Reported Issues -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
+                    <i class="fas fa-list-alt mr-2 text-blue-500"></i> My Reported Issues
+                </h3>
+                <div id="my-issues-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <p class="text-gray-500 col-span-full text-center py-4" id="no-resident-issues">No issues reported yet.</p>
+                    <!-- Issues will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin/Service Dashboard Section -->
+        <section id="admin-dashboard-section" class="hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6 text-blue-600">Admin/Service Dashboard</h2>
+
+            <!-- Issues Overview -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
+                    <i class="fas fa-tasks mr-2 text-indigo-500"></i> All Reported Issues
+                </h3>
+                <div class="mb-4 flex flex-wrap gap-4 items-center">
+                    <input type="text" id="admin-issue-search" placeholder="Search by title, type, or reporter..." class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    <select id="admin-issue-filter-status" class="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        <option value="All">All Statuses</option>
+                        <option value="New">New</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                    <select id="admin-issue-filter-type" class="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        <option value="All">All Types</option>
+                        <option value="Plumbing">Plumbing</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="Structural">Structural</option>
+                        <option value="Common Area">Common Area</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div id="all-issues-list" class="grid grid-cols-1 gap-4">
+                    <p class="text-gray-500 col-span-full text-center py-4" id="no-admin-issues">No issues in the system.</p>
+                    <!-- Admin issues will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Manage Admins Section (Master Admin Only) -->
+        <section id="manage-admins-section" class="hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6 text-blue-600">Manage Admins</h2>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
+                    <i class="fas fa-users-cog mr-2 text-orange-500"></i> Admin Accounts
+                </h3>
+                <div id="admin-accounts-list" class="grid grid-cols-1 gap-4">
+                    <p class="text-gray-500 col-span-full text-center py-4">No other admin accounts to manage.</p>
+                    <!-- Admin accounts will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profile-section" class="hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6 text-blue-600">My Profile</h2>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <form id="profile-form" class="space-y-4">
+                    <div>
+                        <label for="profile-username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                        <input type="text" id="profile-username" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" readonly>
+                    </div>
+                    <div>
+                        <label for="profile-role" class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <input type="text" id="profile-role" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" readonly>
+                    </div>
+                    <div id="profile-address-group" class="hidden">
+                        <label for="profile-address" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <input type="text" id="profile-address" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your address">
+                    </div>
+                    <button type="submit" id="save-profile-button" class="gradient-button text-white py-2 px-6 rounded-md font-semibold hover:shadow-lg transition duration-300">
+                        <i class="fas fa-save mr-2"></i> Save Profile
+                    </button>
+                </form>
+            </div>
+        </section>
+
+
+        <!-- Analytics Section -->
+        <section id="analytics-section" class="hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6 text-blue-600">Analytics & Reports</h2>
+
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
+                    <i class="fas fa-chart-bar mr-2 text-teal-500"></i> Issue Status Overview
+                </h3>
+                <canvas id="issueStatusChart" class="w-full h-64"></canvas>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
+                    <i class="fas fa-file-export mr-2 text-purple-500"></i> Export Reports
+                </h3>
+                <p class="text-gray-600 mb-4">Generate and download reports on issue trends and resolution times.</p>
+                <button id="export-report-button" class="gradient-button-blue text-white py-2 px-6 rounded-md font-semibold hover:shadow-lg transition duration-300">
+                    <i class="fas fa-download mr-2"></i> Export Data (CSV)
+                </button>
+            </div>
+        </section>
+
+        <!-- Notification Message -->
+        <div id="notification-message" class="popup-message hidden"></div>
+
+        <!-- Issue Detail Modal -->
+        <div id="issue-detail-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+            <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto slide-in-right">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-blue-600" id="modal-issue-title">Issue Details</h3>
+                    <button id="close-modal-button" class="text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Reported By:</p>
+                        <p class="text-lg font-semibold" id="modal-reported-by"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Reported On:</p>
+                        <p class="text-lg font-semibold" id="modal-reported-date"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Issue Type:</p>
+                        <p class="text-lg font-semibold" id="modal-issue-type"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Location:</p>
+                        <p class="text-lg font-semibold" id="modal-issue-location"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Current Status:</p>
+                        <p class="text-lg font-semibold" id="modal-issue-status"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Assigned To:</p>
+                        <p class="text-lg font-semibold" id="modal-assigned-to">Unassigned</p>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <p class="text-sm font-medium text-gray-500 mb-2">Description:</p>
+                    <p class="text-base" id="modal-issue-description"></p>
+                </div>
+                <div id="modal-issue-photo-container" class="mb-6 hidden">
+                    <p class="text-sm font-medium text-gray-500 mb-2">Attached Photo:</p>
+                    <img id="modal-issue-photo" src="" alt="Issue Photo" class="max-w-full h-auto rounded-md shadow-md">
+                </div>
+                <div id="modal-issue-comments-container" class="mb-6 border-t pt-4 border-gray-200 hidden">
+                    <p class="text-sm font-medium text-gray-500 mb-2">Comments:</p>
+                    <div id="modal-issue-comments-list">
+                        <!-- Comments will be inserted here -->
+                    </div>
+                </div>
+
+
+                <!-- Admin/Service specific actions -->
+                <div id="admin-modal-actions" class="mt-6 border-t pt-6 border-gray-200">
+                    <h4 class="text-xl font-semibold mb-4 text-gray-700">Admin Actions</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="assign-technician" class="block text-sm font-medium text-gray-700 mb-2">Assign to Technician</label>
+                            <select id="assign-technician" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select Technician</option>
+                                <option value="John Doe">John Doe</option>
+                                <option value="Jane Smith">Jane Smith</option>
+                                <option value="Service Team A">Service Team A</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="update-status" class="block text-sm font-medium text-gray-700 mb-2">Update Status</label>
+                            <select id="update-status" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <option value="New">New</option>
+                                <option value="Assigned">Assigned</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Resolved">Resolved</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="admin-comment" class="block text-sm font-medium text-gray-700 mb-2">Add Comment (to Resident)</label>
+                        <textarea id="admin-comment" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., We've assigned a technician..."></textarea>
+                    </div>
+                    <button id="save-modal-changes" class="gradient-button text-white py-2 px-6 rounded-md font-semibold hover:shadow-lg transition duration-300">
+                        <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-4 text-center mt-8">
+        <p>&copy; 2025 Community Portal. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // --- API Configuration ---
+        const API_BASE_URL = 'http://127.0.0.1:5000/api'; // Flask backend URL
+        let currentUser = null; // Stores { username: '', role: '', address: '' }
+        let currentView = 'auth-section'; // Initial view, helps with notifications
+
+        // Elements (get all elements once to avoid repeated DOM queries)
+        const elements = {
+            authSection: document.getElementById('auth-section'),
+            loginForm: document.getElementById('login-form'),
+            registerForm: document.getElementById('register-form'),
+            showRegisterButton: document.getElementById('show-register-button'),
+            showLoginButton: document.getElementById('show-login-button'),
+            authHeader: document.getElementById('auth-header'),
+
+            loginUsernameInput: document.getElementById('login-username'),
+            loginPasswordInput: document.getElementById('login-password'),
+
+            registerUsernameInput: document.getElementById('register-username'),
+            registerPasswordInput: document.getElementById('register-password'),
+            registerAddressInput: document.getElementById('register-address'),
+            registerRoleSelect: document.getElementById('register-role'),
+
+            residentDashboardSection: document.getElementById('resident-dashboard-section'),
+            adminDashboardSection: document.getElementById('admin-dashboard-section'),
+            manageAdminsSection: document.getElementById('manage-admins-section'),
+            profileSection: document.getElementById('profile-section'),
+            analyticsSection: document.getElementById('analytics-section'),
+
+            issueReportForm: document.getElementById('issue-report-form'),
+            issueLocationInput: document.getElementById('issue-location'),
+            issuePhotoInput: document.getElementById('issue-photo'),
+            photoPreviewContainer: document.getElementById('photo-preview'),
+            photoPreviewImg: document.querySelector('#photo-preview img'),
+
+            myIssuesList: document.getElementById('my-issues-list'),
+            noResidentIssues: document.getElementById('no-resident-issues'),
+
+            allIssuesList: document.getElementById('all-issues-list'),
+            noAdminIssues: document.getElementById('no-admin-issues'),
+            adminIssueSearch: document.getElementById('admin-issue-search'),
+            adminIssueFilterStatus: document.getElementById('admin-issue-filter-status'),
+            adminIssueFilterType: document.getElementById('admin-issue-filter-type'),
+
+            adminAccountsList: document.getElementById('admin-accounts-list'),
+
+            profileUsernameInput: document.getElementById('profile-username'),
+            profileRoleInput: document.getElementById('profile-role'),
+            profileAddressGroup: document.getElementById('profile-address-group'),
+            profileAddressInput: document.getElementById('profile-address'),
+            saveProfileButton: document.getElementById('save-profile-button'),
+
+            issueStatusChartCanvas: document.getElementById('issueStatusChart'),
+            exportReportButton: document.getElementById('export-report-button'),
+
+            notificationMessage: document.getElementById('notification-message'),
+
+            issueDetailModal: document.getElementById('issue-detail-modal'),
+            closeModalButton: document.getElementById('close-modal-button'),
+            modalIssueTitle: document.getElementById('modal-issue-title'),
+            modalReportedBy: document.getElementById('modal-reported-by'),
+            modalReportedDate: document.getElementById('modal-reported-date'),
+            modalIssueType: document.getElementById('modal-issue-type'),
+            modalIssueLocation: document.getElementById('modal-issue-location'),
+            modalIssueStatus: document.getElementById('modal-issue-status'),
+            modalAssignedTo: document.getElementById('modal-assigned-to'),
+            modalIssueDescription: document.getElementById('modal-issue-description'),
+            modalIssuePhotoContainer: document.getElementById('modal-issue-photo-container'),
+            modalIssuePhoto: document.getElementById('modal-issue-photo'),
+            modalIssueCommentsContainer: document.getElementById('modal-issue-comments-container'),
+            modalIssueCommentsList: document.getElementById('modal-issue-comments-list'),
+
+            adminModalActions: document.getElementById('admin-modal-actions'),
+            assignTechnicianSelect: document.getElementById('assign-technician'),
+            updateStatusSelect: document.getElementById('update-status'),
+            adminCommentTextarea: document.getElementById('admin-comment'),
+            saveModalChangesButton: document.getElementById('save-modal-changes'),
+
+            // Nav elements
+            navDashboard: document.getElementById('nav-dashboard'),
+            navReportIssue: document.getElementById('nav-report-issue'),
+            navProfile: document.getElementById('nav-profile'),
+            navManageAdmins: document.getElementById('nav-manage-admins'),
+            navAnalytics: document.getElementById('nav-analytics'),
+            navLogout: document.getElementById('nav-logout'),
+
+            // Mobile Nav elements
+            mobileMenuButton: document.getElementById('mobile-menu-button'),
+            mobileMenu: document.getElementById('mobile-menu'),
+            mobileNavProfile: document.getElementById('mobile-nav-profile'),
+            mobileNavManageAdmins: document.getElementById('mobile-nav-manage-admins'),
+        };
+
+        // All issues fetched from API
+        let allFetchedIssues = [];
+
+        // --- Utility Functions ---
+
+        /**
+         * Generic function to make authenticated API calls.
+         * @param {string} url - The API endpoint.
+         * @param {string} method - HTTP method (GET, POST, PUT, DELETE).
+         * @param {object} body - JSON body for POST/PUT requests.
+         * @param {boolean} authRequired - Whether to include Authorization header.
+         * @returns {Promise<object>} - JSON response from the API.
+         */
+        async function apiCall(url, method = 'GET', body = null, authRequired = true) {
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            const token = localStorage.getItem('token');
+            if (authRequired && token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const options = { method, headers };
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // Handle specific error codes
+                    if (response.status === 401 || response.status === 403) {
+                        showNotification(data.message || 'Authentication failed. Please log in.', 'error');
+                        logout(); // Force logout on auth errors
+                    } else {
+                        showNotification(data.message || `API Error: ${response.status}`, 'error');
+                    }
+                    throw new Error(data.message || `API call failed with status ${response.status}`);
+                }
+                return data;
+            } catch (error) {
+                console.error('API call error:', error);
+                // Notification already handled for common cases in response.ok check
+                // For network errors or other unhandled exceptions:
+                if (!error.message.includes("API Error")) { // Avoid double notification for controlled errors
+                     showNotification(error.message || 'Network error or unexpected response.', 'error');
+                }
+                throw error; // Re-throw to propagate error for calling functions
+            }
+        }
+
+
+        /**
+         * Displays a temporary notification message.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success', 'error', 'info'.
+         */
+        function showNotification(message, type = 'info') {
+            elements.notificationMessage.textContent = message;
+            let bgColor = '';
+            if (type === 'success') bgColor = 'bg-green-500';
+            else if (type === 'error') bgColor = 'bg-red-500';
+            else bgColor = 'bg-blue-500';
+
+            elements.notificationMessage.className = `popup-message ${bgColor}`; // Reset classes and add new ones
+            elements.notificationMessage.classList.remove('hidden');
+            setTimeout(() => {
+                elements.notificationMessage.classList.add('hidden');
+            }, 4000); // Hide after 4 seconds
+        }
+
+        /**
+         * Hides all main content sections.
+         */
+        function hideAllSections() {
+            elements.authSection.classList.add('hidden');
+            elements.residentDashboardSection.classList.add('hidden');
+            elements.adminDashboardSection.classList.add('hidden');
+            elements.manageAdminsSection.classList.add('hidden');
+            elements.profileSection.classList.add('hidden');
+            elements.analyticsSection.classList.add('hidden');
+        }
+
+        /**
+         * Shows a specific section and applies fade-in animation.
+         * @param {string} sectionId - The ID of the section to show.
+         */
+        async function showSection(sectionId) {
+            hideAllSections();
+            const sectionElement = document.getElementById(sectionId);
+            sectionElement.classList.remove('hidden');
+            sectionElement.classList.add('fade-in'); // Trigger fade-in animation
+            currentView = sectionId;
+
+            // Update navigation active state
+            document.querySelectorAll('#main-nav button').forEach(btn => btn.classList.remove('bg-blue-700'));
+            document.querySelectorAll('#mobile-menu button').forEach(btn => btn.classList.remove('bg-blue-800'));
+
+
+            if (sectionId === 'resident-dashboard-section') {
+                elements.navDashboard.classList.add('bg-blue-700');
+                if (currentUser.role === 'resident') {
+                    await fetchAndRenderIssues(); // Fetch issues
+                    // Prefill location for resident if available
+                    if (currentUser.address && !elements.issueLocationInput.value) {
+                         elements.issueLocationInput.value = currentUser.address;
+                    }
+                }
+            } else if (sectionId === 'admin-dashboard-section') {
+                elements.navDashboard.classList.add('bg-blue-700');
+                if (currentUser.role === 'admin' || currentUser.role === 'service') {
+                    await fetchAndRenderIssues(); // Fetch issues
+                    elements.adminIssueSearch.value = '';
+                    elements.adminIssueFilterStatus.value = 'All';
+                    elements.adminIssueFilterType.value = 'All';
+                }
+            } else if (sectionId === 'profile-section') {
+                elements.navProfile.classList.add('bg-blue-700');
+                renderProfile();
+            } else if (sectionId === 'manage-admins-section') {
+                 if (currentUser.username === 'admin' && currentUser.role === 'admin') {
+                    elements.navManageAdmins.classList.add('bg-blue-700');
+                    await fetchAndRenderAdminAccounts();
+                 } else {
+                    showNotification('You do not have permission to manage admins.', 'error');
+                    // Redirect back to dashboard if no permission
+                    showSection(currentUser.role === 'resident' ? 'resident-dashboard-section' : 'admin-dashboard-section');
+                 }
+            } else if (sectionId === 'analytics-section') {
+                elements.navAnalytics.classList.add('bg-blue-700');
+                await fetchAndRenderIssues(); // Fetch all issues for chart
+                drawIssueStatusChart();
+            }
+        }
+
+        /**
+         * Handles navigation clicks.
+         * @param {string} target - The target section or action.
+         */
+        function handleNavClick(target) {
+            if (!currentUser) return; // Should not happen if nav is hidden when logged out
+
+            if (target === 'dashboard') {
+                if (currentUser.role === 'resident') {
+                    showSection('resident-dashboard-section');
+                } else {
+                    showSection('admin-dashboard-section');
+                }
+            } else if (target === 'report-issue') {
+                if (currentUser.role === 'resident') {
+                    showSection('resident-dashboard-section');
+                    document.getElementById('issue-report-form').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    showNotification('Only residents can report issues directly.', 'info');
+                }
+            } else if (target === 'profile') {
+                showSection('profile-section');
+            } else if (target === 'manage-admins') {
+                 if (currentUser.username === 'admin' && currentUser.role === 'admin') {
+                    showSection('manage-admins-section');
+                 } else {
+                    showNotification('You do not have permission to manage admins.', 'error');
+                 }
+            } else if (target === 'analytics') {
+                showSection('analytics-section');
+            }
+            elements.mobileMenu.classList.add('hidden'); // Close mobile menu after selection
+        }
+
+
+        /**
+         * Draws a simple bar chart on a canvas showing issue status distribution.
+         */
+        function drawIssueStatusChart() {
+            const ctx = elements.issueStatusChartCanvas.getContext('2d');
+            ctx.clearRect(0, 0, elements.issueStatusChartCanvas.width, elements.issueStatusChartCanvas.height); // Clear previous chart
+
+            const statusCounts = allFetchedIssues.reduce((acc, issue) => {
+                acc[issue.status] = (acc[issue.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const labels = Object.keys(statusCounts);
+            const data = Object.values(statusCounts);
+
+            if (labels.length === 0) {
+                ctx.font = '16px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('No issue data to display yet.', elements.issueStatusChartCanvas.width / 2, elements.issueStatusChartCanvas.height / 2);
+                return;
+            }
+
+            // Ensure canvas dimensions are set for accurate drawing
+            elements.issueStatusChartCanvas.width = elements.issueStatusChartCanvas.offsetWidth;
+            elements.issueStatusChartCanvas.height = elements.issueStatusChartCanvas.offsetHeight;
+
+
+            const chartWidth = elements.issueStatusChartCanvas.width;
+            const chartHeight = elements.issueStatusChartCanvas.height;
+            const barPadding = 20; // Padding between bars
+            const totalBarWidth = (chartWidth - barPadding * (labels.length + 1)) / labels.length;
+            const maxDataValue = Math.max(...data);
+            const scale = chartHeight / (maxDataValue * 1.2); // Add some padding to top
+
+            ctx.fillStyle = '#4A90E'; // Bar color
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+
+            labels.forEach((label, index) => {
+                const barHeight = data[index] * scale;
+                const x = barPadding + index * (totalBarWidth + barPadding);
+                const y = chartHeight - barHeight;
+
+                // Draw bar
+                ctx.fillRect(x, y, totalBarWidth, barHeight);
+
+                // Draw label
+                ctx.fillStyle = '#333';
+                ctx.fillText(label, x + totalBarWidth / 2, chartHeight - 5); // Status label at bottom
+                ctx.fillText(data[index], x + totalBarWidth / 2, y - 5); // Value on top of bar
+            });
+        }
+
+
+        /**
+         * Fetches issues from the backend and renders them based on the current user's role and filters.
+         */
+        async function fetchAndRenderIssues() {
+            try {
+                const issues = await apiCall(`${API_BASE_URL}/issues`, 'GET');
+                allFetchedIssues = issues; // Store all fetched issues for analytics/filtering
+
+                if (currentUser.role === 'resident') {
+                    renderIssues(issues.filter(issue => issue.reporter === currentUser.username), 'resident');
+                } else { // Admin or Service
+                    renderIssues(issues, 'admin');
+                }
+            } catch (error) {
+                console.error("Failed to fetch issues:", error);
+                // Notification already shown by apiCall
+            }
+        }
+
+        /**
+         * Renders issues into the appropriate list (resident's or admin's).
+         * @param {Array} issuesToRender - List of issue objects.
+         * @param {string} roleContext - 'resident' or 'admin'.
+         */
+        function renderIssues(issuesToRender, roleContext) {
+            const listContainer = roleContext === 'resident' ? elements.myIssuesList : elements.allIssuesList;
+            const noIssuesMessage = roleContext === 'resident' ? elements.noResidentIssues : elements.noAdminIssues;
+
+            listContainer.innerHTML = ''; // Clear previous issues
+
+            if (issuesToRender.length === 0) {
+                noIssuesMessage.classList.remove('hidden');
+                return;
+            } else {
+                noIssuesMessage.classList.add('hidden');
+            }
+
+            issuesToRender.forEach(issue => {
+                const issueCard = document.createElement('div');
+                issueCard.className = 'bg-gray-100 p-4 rounded-lg shadow-sm border border-gray-200 fade-in';
+                let statusColor = '';
+                switch (issue.status) {
+                    case 'New': statusColor = 'bg-yellow-100 text-yellow-800'; break;
+                    case 'Assigned': statusColor = 'bg-blue-100 text-blue-800'; break;
+                    case 'In Progress': statusColor = 'bg-purple-100 text-purple-800'; break;
+                    case 'Resolved': statusColor = 'bg-green-100 text-green-800'; break;
+                    case 'Closed': statusColor = 'bg-gray-200 text-gray-800'; break;
+                    default: statusColor = 'bg-gray-100 text-gray-800';
+                }
+
+                issueCard.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-xl font-semibold text-blue-700">${issue.title}</h4>
+                        <span class="text-sm px-3 py-1 rounded-full ${statusColor}">${issue.status}</span>
+                    </div>
+                    <p class="text-gray-600 mb-2 truncate">${issue.description}</p>
+                    ${roleContext === 'admin' ? `
+                        <div class="text-sm text-gray-500 flex items-center mb-1">
+                            <i class="fas fa-user-circle mr-1"></i> Reported by: <span class="font-medium">${issue.reporter}</span>
+                        </div>` : ''}
+                    <div class="text-sm text-gray-500 flex items-center mb-1">
+                        <i class="fas fa-tag mr-1"></i> Type: ${issue.type}
+                    </div>
+                    <div class="text-sm text-gray-500 flex items-center mb-1">
+                        <i class="fas fa-map-marker-alt mr-1"></i> Location: ${issue.location}
+                    </div>
+                    <div class="text-sm text-gray-500 flex items-center">
+                        <i class="fas fa-calendar-alt mr-1"></i> Reported: ${new Date(issue.date).toLocaleDateString()}
+                    </div>
+                    ${issue.assignedTo ? `<div class="text-sm text-gray-500 flex items-center mt-1"><i class="fas fa-user-tie mr-1"></i> Assigned: ${issue.assignedTo}</div>` : ''}
+                    <button data-issue-id="${issue._id}" class="view-detail-btn mt-4 gradient-button-blue text-white text-sm py-2 px-4 rounded-md font-medium hover:shadow-md transition duration-300">
+                        ${roleContext === 'admin' ? 'Manage Issue' : 'View Details'}
+                    </button>
+                `;
+                listContainer.appendChild(issueCard);
+            });
+            addDetailButtonListeners();
+        }
+
+        /**
+         * Renders the list of admin accounts for the master admin.
+         */
+        async function fetchAndRenderAdminAccounts() {
+            elements.adminAccountsList.innerHTML = '';
+            try {
+                const admins = await apiCall(`${API_BASE_URL}/admins`, 'GET');
+                if (admins.length === 0) {
+                    elements.adminAccountsList.innerHTML = '<p class="text-gray-500 col-span-full text-center py-4">No other admin accounts to manage.</p>';
+                    return;
+                }
+
+                admins.forEach(adminUser => {
+                    const adminCard = document.createElement('div');
+                    adminCard.className = 'bg-gray-100 p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4 fade-in';
+                    let statusColor = '';
+                    let statusText = '';
+
+                    switch(adminUser.status) {
+                        case 'pending':
+                            statusColor = 'bg-yellow-100 text-yellow-800';
+                            statusText = 'Pending Approval';
+                            break;
+                        case 'approved':
+                            statusColor = 'bg-green-100 text-green-800';
+                            statusText = 'Approved';
+                            break;
+                        case 'rejected':
+                            statusColor = 'bg-red-100 text-red-800';
+                            statusText = 'Rejected';
+                            break;
+                        default:
+                            statusColor = 'bg-gray-100 text-gray-800';
+                            statusText = 'Unknown';
+                    }
+
+                    adminCard.innerHTML = `
+                        <div class="flex-grow">
+                            <h4 class="text-xl font-semibold text-blue-700">${adminUser.username}</h4>
+                            <p class="text-gray-600 text-sm">Role: ${adminUser.role}</p>
+                            <p class="text-sm px-3 py-1 rounded-full ${statusColor} inline-block mt-2">${statusText}</p>
+                        </div>
+                        <div class="flex flex-col md:flex-row gap-2">
+                            ${adminUser.status === 'pending' ? `
+                                <button data-username="${adminUser.username}" data-action="approve" class="manage-admin-btn gradient-button text-white text-sm py-2 px-4 rounded-md font-medium hover:shadow-md transition duration-300">Approve</button>
+                                <button data-username="${adminUser.username}" data-action="reject" class="manage-admin-btn gradient-button-red text-white text-sm py-2 px-4 rounded-md font-medium hover:shadow-md transition duration-300">Reject</button>
+                            ` : ''}
+                            ${adminUser.status === 'rejected' ? `
+                                <button data-username="${adminUser.username}" data-action="approve" class="manage-admin-btn gradient-button text-white text-sm py-2 px-4 rounded-md font-medium hover:shadow-md transition duration-300">Re-Approve</button>
+                            ` : ''}
+                        </div>
+                    `;
+                    elements.adminAccountsList.appendChild(adminCard);
+                });
+
+                document.querySelectorAll('.manage-admin-btn').forEach(button => {
+                    button.onclick = async (e) => {
+                        const username = e.target.dataset.username;
+                        const action = e.target.dataset.action;
+                        try {
+                            const result = await apiCall(`${API_BASE_URL}/admins/${username}/${action}`, 'PUT');
+                            showNotification(result.message, 'success');
+                            fetchAndRenderAdminAccounts(); // Re-render the list
+                        } catch (error) {
+                            console.error("Failed to manage admin status:", error);
+                            // Notification already handled by apiCall
+                        }
+                    };
+                });
+
+            } catch (error) {
+                console.error("Failed to fetch admin accounts:", error);
+                // Notification already handled by apiCall
+            }
+        }
+
+
+        /**
+         * Adds click listeners to all "View Details" / "Manage Issue" buttons.
+         */
+        function addDetailButtonListeners() {
+            document.querySelectorAll('.view-detail-btn').forEach(button => {
+                button.onclick = (event) => {
+                    const issueId = event.target.dataset.issueId;
+                    openIssueDetailModal(issueId);
+                };
+            });
+        }
+
+        /**
+         * Opens the issue detail modal and populates it with issue data.
+         * @param {string} issueId - The ID of the issue to display.
+         */
+        function openIssueDetailModal(issueId) {
+            const issue = allFetchedIssues.find(i => i._id === issueId); // Use _id from MongoDB
+            if (!issue) {
+                showNotification('Issue not found!', 'error');
+                return;
+            }
+
+            elements.modalIssueTitle.textContent = issue.title;
+            elements.modalReportedBy.textContent = issue.reporter;
+            elements.modalReportedDate.textContent = new Date(issue.date).toLocaleString();
+            elements.modalIssueType.textContent = issue.type;
+            elements.modalIssueLocation.textContent = issue.location;
+            elements.modalIssueStatus.textContent = issue.status;
+            elements.modalAssignedTo.textContent = issue.assignedTo || 'Unassigned';
+            elements.modalIssueDescription.textContent = issue.description;
+
+            if (issue.photoUrl) {
+                elements.modalIssuePhoto.src = issue.photoUrl;
+                elements.modalIssuePhotoContainer.classList.remove('hidden');
+            } else {
+                elements.modalIssuePhotoContainer.classList.add('hidden');
+                elements.modalIssuePhoto.src = '';
+            }
+
+            // Display comments
+            elements.modalIssueCommentsList.innerHTML = '';
+            if (issue.comments && issue.comments.length > 0) {
+                elements.modalIssueCommentsContainer.classList.remove('hidden');
+                issue.comments.forEach(comment => {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'bg-gray-50 p-3 rounded-md mb-2 text-sm';
+                    commentDiv.innerHTML = `
+                        <p class="font-semibold">${comment.author} <span class="text-gray-500 text-xs">- ${new Date(comment.date).toLocaleString()}</span></p>
+                        <p>${comment.text}</p>
+                    `;
+                    elements.modalIssueCommentsList.appendChild(commentDiv);
+                });
+            } else {
+                elements.modalIssueCommentsContainer.classList.add('hidden');
+            }
+
+            // Admin/Service specific fields
+            if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'service')) {
+                elements.adminModalActions.classList.remove('hidden');
+                elements.assignTechnicianSelect.value = issue.assignedTo || '';
+                elements.updateStatusSelect.value = issue.status;
+                // Store current issue ID on the save button for easy access
+                elements.saveModalChangesButton.dataset.issueId = issue._id; // Use _id
+            } else {
+                elements.adminModalActions.classList.add('hidden');
+            }
+
+            elements.issueDetailModal.classList.remove('hidden');
+        }
+
+        /**
+         * Closes the issue detail modal.
+         */
+        function closeIssueDetailModal() {
+            elements.issueDetailModal.classList.add('hidden');
+            elements.adminCommentTextarea.value = ''; // Clear comment field
+        }
+
+        /**
+         * Handles saving changes from the issue detail modal to the backend.
+         */
+        async function saveModalChanges() {
+            const issueId = elements.saveModalChangesButton.dataset.issueId;
+            const newAssignedTo = elements.assignTechnicianSelect.value;
+            const newStatus = elements.updateStatusSelect.value;
+            const adminComment = elements.adminCommentTextarea.value.trim();
+
+            const updates = {
+                assignedTo: newAssignedTo === '' ? null : newAssignedTo, // Send null if unassigned
+                status: newStatus,
+            };
+
+            if (adminComment) {
+                updates.comment = adminComment;
+            }
+
+            try {
+                // Send update to backend
+                const updatedIssue = await apiCall(`${API_BASE_URL}/issues/${issueId}`, 'PUT', updates);
+                
+                // Update the local allFetchedIssues array to reflect changes immediately
+                allFetchedIssues = allFetchedIssues.map(issue => 
+                    issue._id === updatedIssue._id ? updatedIssue : issue
+                );
+
+                showNotification(`Issue "${updatedIssue.title}" updated successfully!`, 'success');
+                fetchAndRenderIssues(); // Re-render current dashboard view
+                drawIssueStatusChart(); // Update chart
+                closeIssueDetailModal();
+            } catch (error) {
+                console.error("Failed to save modal changes:", error);
+                // Notification already handled by apiCall
+            }
+        }
+
+        /**
+         * Renders the current user's profile information.
+         */
+        async function renderProfile() {
+            if (!currentUser) {
+                showNotification('Please log in to view your profile.', 'error');
+                return;
+            }
+
+            // Fetch current user's full profile again to ensure data is fresh
+            try {
+                const response = await apiCall(`${API_BASE_URL}/users/profile`, 'GET');
+                currentUser = response.user; // Update local currentUser object
+
+                elements.profileUsernameInput.value = currentUser.username;
+                elements.profileRoleInput.value = currentUser.role;
+
+                if (['resident', 'admin', 'service'].includes(currentUser.role)) {
+                    elements.profileAddressGroup.classList.remove('hidden');
+                    elements.profileAddressInput.value = currentUser.address || '';
+                } else {
+                    elements.profileAddressGroup.classList.add('hidden');
+                    elements.profileAddressInput.value = '';
+                }
+            } catch (error) {
+                console.error("Failed to load profile data:", error);
+                showNotification('Failed to load profile data.', 'error');
+            }
+        }
+
+        /**
+         * Handles saving profile changes to the backend.
+         */
+        async function saveProfileChanges() {
+            if (!currentUser) return;
+
+            const newAddress = elements.profileAddressInput.value.trim(); // Only address is editable
+
+            try {
+                const updatedUser = await apiCall(`${API_BASE_URL}/users/profile`, 'PUT', { address: newAddress });
+                currentUser.address = updatedUser.user.address; // Update local state
+                showNotification('Profile updated successfully!', 'success');
+            } catch (error) {
+                console.error("Failed to save profile changes:", error);
+                // Notification already handled by apiCall
+            }
+        }
+
+        /**
+         * Switches between login and registration forms.
+         * @param {string} formType - 'login' or 'register'.
+         */
+        function showAuthForm(formType) {
+            if (formType === 'login') {
+                elements.loginForm.classList.remove('hidden');
+                elements.registerForm.classList.add('hidden');
+                elements.authHeader.textContent = 'Welcome to the Portal';
+            } else {
+                elements.loginForm.classList.add('hidden');
+                elements.registerForm.classList.remove('hidden');
+                elements.authHeader.textContent = 'Register New Account';
+            }
+        }
+
+
+        /**
+         * Handles user login logic with the backend.
+         */
+        async function login() {
+            const username = elements.loginUsernameInput.value.trim();
+            const password = elements.loginPasswordInput.value.trim();
+
+            try {
+                const data = await apiCall(`${API_BASE_URL}/auth/login`, 'POST', { username, password }, false); // Auth not required for login
+                localStorage.setItem('token', data.access_token);
+                currentUser = data.user;
+                setupDashboard(currentUser.role);
+                showNotification(`Logged in as ${currentUser.username} (${currentUser.role}).`, 'success');
+            } catch (error) {
+                console.error("Login failed:", error);
+                // Notification already handled by apiCall
+            }
+        }
+
+        /**
+         * Handles new user registration logic with the backend.
+         */
+        async function register() {
+            const username = elements.registerUsernameInput.value.trim();
+            const password = elements.registerPasswordInput.value.trim();
+            const address = elements.registerAddressInput.value.trim();
+            const role = elements.registerRoleSelect.value;
+
+            if (!username || !password) {
+                showNotification('Please choose a username and password.', 'error');
+                return;
+            }
+
+            const userData = {
+                username,
+                password,
+                role,
+                address: role === 'resident' ? address : ''
+            };
+
+            try {
+                const data = await apiCall(`${API_BASE_URL}/auth/register`, 'POST', userData, false); // Auth not required for register
+                showNotification(data.message, 'success');
+
+                // Reset form and switch back to login form
+                elements.registerForm.reset();
+                showAuthForm('login');
+                elements.loginUsernameInput.value = username; // Pre-fill username for convenience
+                elements.loginPasswordInput.value = '';
+
+            } catch (error) {
+                console.error("Registration failed:", error);
+                // Notification already handled by apiCall
+            }
+        }
+
+        /**
+         * Sets up the dashboard based on user role after login.
+         * Adjusts navigation visibility.
+         * @param {string} role - 'resident', 'admin', or 'service'.
+         */
+        async function setupDashboard(role) {
+            // Show main navigation
+            elements.navDashboard.parentNode.classList.remove('hidden');
+            elements.navDashboard.parentNode.classList.add('flex');
+
+            // Hide/Show specific nav items based on role
+            elements.navReportIssue.classList.remove('hidden');
+            elements.navProfile.classList.remove('hidden');
+            elements.navAnalytics.classList.remove('hidden');
+
+            elements.mobileNavProfile.classList.remove('hidden');
+            elements.mobileNavManageAdmins.classList.add('hidden');
+            elements.navManageAdmins.classList.add('hidden');
+
+            if (role === 'resident') {
+                elements.navAnalytics.classList.add('hidden'); // Residents don't see Analytics in main nav
+                await showSection('resident-dashboard-section');
+            } else if (role === 'admin' || role === 'service') {
+                if (currentUser.username === 'admin' && currentUser.role === 'admin') {
+                    elements.navManageAdmins.classList.remove('hidden');
+                    elements.mobileNavManageAdmins.classList.remove('hidden');
+                }
+                await showSection('admin-dashboard-section');
+            }
+            elements.mobileMenu.classList.add('hidden'); // Close mobile menu if open
+        }
+
+        /**
+         * Handles user logout.
+         */
+        function logout() {
+            localStorage.removeItem('token');
+            currentUser = null;
+            hideAllSections();
+            elements.authSection.classList.remove('hidden');
+            elements.authSection.classList.add('fade-in');
+            elements.loginUsernameInput.value = '';
+            elements.loginPasswordInput.value = '';
+            showAuthForm('login'); // Ensure login form is shown on logout
+            // Hide all nav elements when logged out
+            elements.navDashboard.parentNode.classList.add('hidden');
+            elements.navDashboard.parentNode.classList.remove('flex');
+            elements.navProfile.classList.add('hidden');
+            elements.navManageAdmins.classList.add('hidden');
+            elements.navReportIssue.classList.add('hidden');
+            elements.mobileMenu.classList.add('hidden');
+            elements.mobileNavProfile.classList.add('hidden');
+            elements.mobileNavManageAdmins.classList.add('hidden');
+            showNotification('Logged out successfully.', 'info');
+        }
+
+        // --- Event Listeners ---
+
+        // Login form submission
+        elements.loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await login();
+        });
+
+        // Registration form submission
+        elements.registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await register();
+        });
+
+        // Switch between login and register forms
+        elements.showRegisterButton.addEventListener('click', () => showAuthForm('register'));
+        elements.showLoginButton.addEventListener('click', () => showAuthForm('login'));
+
+        // Toggle mobile menu
+        elements.mobileMenuButton.addEventListener('click', () => {
+            elements.mobileMenu.classList.toggle('hidden');
+        });
+
+        // Navigation button clicks (bind these AFTER elements are retrieved)
+        elements.navDashboard.addEventListener('click', () => handleNavClick('dashboard'));
+        elements.navReportIssue.addEventListener('click', () => handleNavClick('report-issue'));
+        elements.navProfile.addEventListener('click', () => handleNavClick('profile'));
+        elements.navManageAdmins.addEventListener('click', () => handleNavClick('manage-admins'));
+        elements.navAnalytics.addEventListener('click', () => handleNavClick('analytics'));
+        elements.navLogout.addEventListener('click', logout);
+
+
+        // Issue photo preview
+        elements.issuePhotoInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    elements.photoPreviewImg.src = e.target.result;
+                    elements.photoPreviewContainer.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file); // Reads file as base64 string
+            } else {
+                elements.photoPreviewContainer.classList.add('hidden');
+                elements.photoPreviewImg.src = '';
+            }
+        });
+
+        // Issue report form submission
+        elements.issueReportForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const title = document.getElementById('issue-title').value.trim();
+            const description = document.getElementById('issue-description').value.trim();
+            const type = document.getElementById('issue-type').value;
+            const location = document.getElementById('issue-location').value.trim();
+            const photoUrl = elements.photoPreviewImg.src; // Use the base64 URL from preview
+
+            if (!title || !description || !type || !location) {
+                showNotification('Please fill in all required fields.', 'error');
+                return;
+            }
+
+            const newIssueData = {
+                title,
+                description,
+                type,
+                location,
+                photoUrl // Send base64 to backend
+            };
+
+            try {
+                await apiCall(`${API_BASE_URL}/issues`, 'POST', newIssueData);
+                showNotification('Issue reported successfully! Waiting for review.', 'success');
+
+                // Reset form
+                elements.issueReportForm.reset();
+                if (currentUser && currentUser.role === 'resident' && currentUser.address) {
+                    elements.issueLocationInput.value = currentUser.address;
+                } else {
+                    elements.issueLocationInput.value = '';
+                }
+                elements.photoPreviewContainer.classList.add('hidden');
+                elements.photoPreviewImg.src = '';
+
+                // Re-fetch and render issues for updated lists
+                await fetchAndRenderIssues();
+                drawIssueStatusChart();
+            } catch (error) {
+                console.error("Error reporting issue:", error);
+                // Notification handled by apiCall
+            }
+        });
+
+        // Admin dashboard search and filter
+        elements.adminIssueSearch.addEventListener('input', () => renderIssues(filterIssues(), 'admin'));
+        elements.adminIssueFilterStatus.addEventListener('change', () => renderIssues(filterIssues(), 'admin'));
+        elements.adminIssueFilterType.addEventListener('change', () => renderIssues(filterIssues(), 'admin'));
+
+        function filterIssues() {
+            const searchTerm = elements.adminIssueSearch.value.toLowerCase();
+            const statusFilter = elements.adminIssueFilterStatus.value;
+            const typeFilter = elements.adminIssueFilterType.value;
+
+            return allFetchedIssues.filter(issue => {
+                const matchesSearch = issue.title.toLowerCase().includes(searchTerm) ||
+                                      issue.description.toLowerCase().includes(searchTerm) ||
+                                      issue.reporter.toLowerCase().includes(searchTerm) ||
+                                      issue.type.toLowerCase().includes(searchTerm);
+
+                const matchesStatus = statusFilter === 'All' || issue.status === statusFilter;
+                const matchesType = typeFilter === 'All' || issue.type === typeFilter;
+
+                return matchesSearch && matchesStatus && matchesType;
+            });
+        }
+
+
+        // Save profile button click
+        elements.saveProfileButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await saveProfileChanges();
+        });
+
+
+        // Issue detail modal close button
+        elements.closeModalButton.addEventListener('click', closeIssueDetailModal);
+        // Close modal when clicking outside of it
+        elements.issueDetailModal.addEventListener('click', (event) => {
+            if (event.target === elements.issueDetailModal) {
+                closeIssueDetailModal();
+            }
+        });
+
+        // Save changes in issue detail modal
+        elements.saveModalChangesButton.addEventListener('click', async () => {
+            await saveModalChanges();
+        });
+
+        // Export report button
+        elements.exportReportButton.addEventListener('click', () => {
+            if (allFetchedIssues.length === 0) {
+                showNotification('No data to export.', 'info');
+                return;
+            }
+            const headers = ['ID', 'Title', 'Description', 'Type', 'Location', 'Reporter', 'Date Reported', 'Status', 'Assigned To'];
+            const rows = allFetchedIssues.map(issue => [
+                issue._id, // Use _id from MongoDB
+                issue.title,
+                issue.description.replace(/"/g, '""'), // Handle quotes in description
+                issue.type,
+                issue.location.replace(/"/g, '""'),
+                issue.reporter,
+                new Date(issue.date).toLocaleDateString(),
+                issue.status,
+                issue.assignedTo || 'Unassigned'
+            ].map(field => `"${field}"`).join(',')); // Enclose fields in quotes for CSV
+
+            const csvContent = [headers.map(h => `"${h}"`).join(','), ...rows].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'community_issues_report.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showNotification('Report exported successfully!', 'success');
+            } else {
+                showNotification('Your browser does not support downloading files directly.', 'error');
+            }
+        });
+
+        // --- Initial setup on page load ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            hideAllSections();
+            elements.authSection.classList.remove('hidden');
+            showAuthForm('login'); // Start with the login form visible
+
+            // Check if user is already logged in (token exists)
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    // Try to fetch user profile to validate token and get user info
+                    const userProfile = await apiCall(`${API_BASE_URL}/users/profile`, 'GET');
+                    currentUser = userProfile.user;
+                    await setupDashboard(currentUser.role);
+                    showNotification(`Welcome back, ${currentUser.username}!`, 'info');
+                } catch (error) {
+                    console.error("Auto-login failed:", error);
+                    logout(); // Log out if token is invalid or expired
+                }
+            } else {
+                logout(); // Ensure clean state if no token
+            }
+        });
+
+        // Simulate real-time notifications for new issues (every 30 seconds)
+        // This will now trigger a re-fetch of issues to check for changes
+        setInterval(async () => {
+            if (!currentUser || currentView === 'issue-detail-modal') return;
+
+            try {
+                // Fetch issues silently to check for new/updated ones
+                const latestIssues = await apiCall(`${API_BASE_URL}/issues`, 'GET');
+
+                let newOrUpdatedDetected = false;
+                if (latestIssues.length !== allFetchedIssues.length) {
+                    newOrUpdatedDetected = true; // Simple check for new issues
+                } else {
+                    // More detailed check: iterate through new issues to see if status changed for current user's issues
+                    // Or if new issues for admin/service roles exist
+                    for (const latestIssue of latestIssues) {
+                        const oldIssue = allFetchedIssues.find(i => i._id === latestIssue._id);
+                        if (!oldIssue) { // A new issue appeared
+                            newOrUpdatedDetected = true;
+                            break;
+                        }
+                        if (currentUser.role === 'resident' && latestIssue.reporter === currentUser.username && latestIssue.status !== oldIssue.status) {
+                            newOrUpdatedDetected = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (newOrUpdatedDetected) {
+                    if (currentUser.role === 'resident') {
+                        showNotification(`Your issue status might have been updated or new issues reported!`, 'info');
+                    } else if (currentUser.role === 'admin' || currentUser.role === 'service') {
+                        showNotification(`Admin: New or updated issues awaiting review!`, 'info');
+                    }
+                    // Re-render the current dashboard to show updated data
+                    if (currentUser.role === 'resident' && currentView === 'resident-dashboard-section') {
+                        renderIssues(latestIssues.filter(issue => issue.reporter === currentUser.username), 'resident');
+                    } else if ((currentUser.role === 'admin' || currentUser.role === 'service') && currentView === 'admin-dashboard-section') {
+                        renderIssues(filterIssues(), 'admin'); // Re-apply current filters
+                    } else if (currentView === 'analytics-section') {
+                        drawIssueStatusChart();
+                    }
+                }
+                allFetchedIssues = latestIssues; // Update stored issues after check
+
+            } catch (error) {
+                console.error("Periodic issue check failed:", error);
+                // Errors handled by apiCall
+            }
+        }, 30000); // Check every 30 seconds for new issues to notify about
+    </script>
+</body>
+</html>
