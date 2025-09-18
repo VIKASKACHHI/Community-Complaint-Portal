@@ -16,7 +16,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # --- Configuration ---
-app.config["MONGO_URI"] = os.getenv("MONGO_URI", "mongodb://localhost:27017/community_portal_flask")
+app.config["MONGO_URI"] = os.getenv("MONGO_URI", "mongodb+srv://kachhivikas1:ADMIN1234@cluster.bwpehug.mongodb.net//community_complaint_portal_IARS")
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "super_secret_fallback_key_for_jwt_dev_only")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1) # Token expires in 1 hour
 
